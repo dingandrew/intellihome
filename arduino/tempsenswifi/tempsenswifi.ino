@@ -4,62 +4,48 @@
 #include <WiFiManager.h> 
 #include <SimpleDHT.h>
 
-
-// Uncomment one of the lines below for whatever DHT sensor type you're using!
-//#define DHTTYPE DHT11   // DHT 11
-//#define DHTTYPE DHT21   // DHT 21 (AM2301)
-//#define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
-
-/*Put your SSID & Password*/
-const char* ssid = "Andrew17";  // Enter SSID here
-const char* password = "andrewding";  //Enter Password here
-
 ESP8266WebServer server(80);
-
-// DHT Sensor
-//uint8_t DHTPin = D2; 
-               
-// Initialize DHT sensor.
-//DHT dht(DHTPin, DHTTYPE);       
 
 int pinDHT11 = 2;
 SimpleDHT11 dht11;
 
-
- 
 void setup() {
-  Serial.begin(115200);
-  delay(100);
+  // put your setup code here, to run once:
+    Serial.begin(115200);
+
+    //WiFiManager
+    //Local intialization. Once its business is done, there is no need to keep it around
+    WiFiManager wifiManager;
+    //reset saved settings
+    //wifiManager.resetSettings();
+    
+    //set custom ip for portal
+    //wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+
+    //fetches ssid and pass from eeprom and tries to connect
+    //if it does not connect it starts an access point with the specified name
+    //here  "AutoConnectAP"
+    //and goes into a blocking loop awaiting configuration
+    wifiManager.autoConnect("AutoConnectAP");
+    //or use this for auto generated name ESP + ChipID
+    //wifiManager.autoConnect();
+
+    
+    //if you get here you have connected to the WiFi
+    Serial.println("connected...yeey :)");
+
+    //start server
+    Serial.print("Got IP: ");  Serial.println(WiFi.localIP());
+
+    server.on("/", handle_OnConnect);
+    server.onNotFound(handle_NotFound);
   
-  pinMode(pinDHT11, INPUT);
-
-//  dht.begin();              
-
-  Serial.println("Connecting to ");
-  Serial.println(ssid);
-
-  //connect to your local wi-fi network
-  WiFi.begin(ssid, password);
-
-  //check wi-fi is connected to wi-fi network
-  while (WiFi.status() != WL_CONNECTED) {
-  delay(1000);
-  Serial.print(".");
-  }
-  Serial.println("");
-  Serial.println("WiFi connected..!");
-  Serial.print("Got IP: ");  Serial.println(WiFi.localIP());
-
-  server.on("/", handle_OnConnect);
-  server.onNotFound(handle_NotFound);
-
-  server.begin();
-  Serial.println("HTTP server started");
-
+    server.begin();
+    Serial.println("HTTP server started");
 }
+
 void loop() {
-  
-  server.handleClient();
+   server.handleClient();
   
 }
 
